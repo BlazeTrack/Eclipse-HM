@@ -29,38 +29,42 @@ jobs:
       - name: Habilitar Windows Config
         run: flutter config --enable-windows-desktop
 
-      # 4. Limpieza profunda de CMake y Flutter residual
+      # 4. PARCHE CRÍTICO: Eliminar la restricción forzada de VS 2019 en CMakeLists.txt
+      - name: Forzar compatibilidad con Visual Studio Moderno
+        run: |
+          if (Test-Path windows\CMakeLists.txt) {
+            (Get-Content windows\CMakeLists.txt) -replace 'string\(REGEX REPLACE.*', '' | Set-Content windows\CMakeLists.txt
+            echo "Parche aplicado a CMakeLists.txt con éxito."
+          }
+
+      # 5. Limpieza profunda de CMake y Flutter residual
       - name: Limpieza profunda de CMake y Flutter
         run: |
           flutter clean
           if (Test-Path windows\flutter\ephemeral) { Remove-Item -Recurse -Force windows\flutter\ephemeral }
           if (Test-Path build) { Remove-Item -Recurse -Force build }
 
-      # 5. Descargar dependencias limpias de la app (Incluye tu buscador reparado)
+      # 6. Descargar dependencias limpias de la app
       - name: Instalar dependencias
         run: flutter pub get
 
-      # 6. Instalar y renderizar tus logos personalizados de Eclipse-HM
+      # 7. Instalar y renderizar tus logos personalizados de Eclipse-HM
       - name: Generar Iconos de la App
         run: |
           flutter pub add --dev flutter_launcher_icons
           flutter pub run flutter_launcher_icons
 
-      # 7. COMPILACIÓN NATIVA DIRECTA DE FLUTTER
-      # Inyectamos el generador Visual Studio 2022 para evitar el error anterior de CMake
+      # 8. COMPILACIÓN NATIVA DIRECTA DE FLUTTER
       - name: Compilar ejecutable oficial de Windows
-        env:
-          CMAKE_GENERATOR: "Visual Studio 17 2022"
         run: flutter build windows --release --dart-define FLUTTER_BUILD_NAME=1.12.2 --dart-define FLUTTER_BUILD_NUMBER=27
 
-      # 8. EMPAQUETADO AUTOMÁTICO
-      # Agrupamos el archivo .exe junto con sus librerías dinámicas (.dll) necesarias en un archivo ZIP listo para usar
+      # 9. EMPAQUETADO AUTOMÁTICO EN ZIP
       - name: Crear paquete ZIP de la aplicación
         run: |
           New-Item -ItemType Directory -Force -Path dist
           Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath dist\Eclipse-HM-Windows-x64.zip
 
-      # 9. Guardar tu .zip final en los artefactos de GitHub
+      # 10. Guardar tu .zip final en los artefactos de GitHub
       - name: Subir Paquete como Artefacto
         uses: actions/upload-artifact@v4
         with:
