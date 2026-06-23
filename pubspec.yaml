@@ -75,4 +75,38 @@ dependencies:
       url: https://github.com/anandnet/terminate_restart.git
       branch: main
       ref: eb505e07e11d0fe1f5c03993e707c6678428c353
-  toggle_switch: ^2.1
+  
+  # CORREGIDO: Añadido el parche .0 obligatorio
+  toggle_switch: ^2.1.0
+  
+  tray_manager: ^0.2.3
+  url_launcher: ^6.2.1
+  widget_marquee: ^0.0.8
+  window_manager: ^0.4.2
+  
+  # MOTOR DE BÚSQUEDA REPARADO: Oficial y mantenido por la comunidad
+  youtube_explode_dart: ^2.3.2
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+  jnigen: ^0.14.0
+  
+  # LIBRERÍA DE ICONOS INDENTADA CORRECTAMENTE
+  flutter_launcher_icons: ^0.13.1
+
+# CONFIGURACIÓN DE ICONOS AL MARGEN IZQUIERDO
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  min_sdk_android: 21
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+# The following section is specific to Flutter packages.
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
