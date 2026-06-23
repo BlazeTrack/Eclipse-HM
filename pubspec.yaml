@@ -77,4 +77,4 @@ dependencies:
       ref: eb505e07e11d0fe1f5c03993e707c6678428c353
   toggle_switch: ^2.1.0
   tray_manager: ^0.2.3
-  url_launcher: ^6.2
+  url_launcher: ^6.2.1
