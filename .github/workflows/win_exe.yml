@@ -25,17 +25,13 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # 3. Forzar el soporte para aplicaciones de escritorio en Windows
+      # 3. SOLUCIÓN INTEGRAL: Instalar las herramientas de compilación de Visual Studio 2019
+      - name: Instalar herramientas de Visual Studio 2019
+        uses: microsoft/setup-msbuild@v2
+
+      # 4. Forzar el soporte para aplicaciones de escritorio en Windows
       - name: Habilitar Windows Config
         run: flutter config --enable-windows-desktop
-
-      # 4. PARCHE CRÍTICO: Eliminar la restricción forzada de VS 2019 en CMakeLists.txt
-      - name: Forzar compatibilidad con Visual Studio Moderno
-        run: |
-          if (Test-Path windows\CMakeLists.txt) {
-            (Get-Content windows\CMakeLists.txt) -replace 'string\(REGEX REPLACE.*', '' | Set-Content windows\CMakeLists.txt
-            echo "Parche aplicado a CMakeLists.txt con éxito."
-          }
 
       # 5. Limpieza profunda de CMake y Flutter residual
       - name: Limpieza profunda de CMake y Flutter
@@ -54,7 +50,8 @@ jobs:
           flutter pub add --dev flutter_launcher_icons
           flutter pub run flutter_launcher_icons
 
-      # 8. COMPILACIÓN NATIVA DIRECTA DE FLUTTER
+      # 8. COMPILACIÓN NATIVA DIRECTA
+      # El servidor ahora sí tiene el entorno de 2019 activo listo para CMake
       - name: Compilar ejecutable oficial de Windows
         run: flutter build windows --release --dart-define FLUTTER_BUILD_NAME=1.12.2 --dart-define FLUTTER_BUILD_NUMBER=27
 
