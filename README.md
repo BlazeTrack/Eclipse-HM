@@ -1,6 +1,6 @@
 <div align="center">
 
-# ❗**This repository is no longer maintained.**
+# ❗**This repository is no longer maintained. for now...**
 
 </div>
 
