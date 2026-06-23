@@ -10,22 +10,14 @@ on:
 
 jobs:
   build:
-    # SOLUCIÓN: Cambiamos a un servidor Windows que SÍ tiene Visual Studio instalado
     runs-on: windows-latest
 
     steps:
-      # 1. Descargar el código del repositorio
+      # 1. Traer el código fuente
       - name: Checkout del código
         uses: actions/checkout@v3
 
-      # 2. Configurar Java JDK (Por si acaso lo requiere alguna dependencia)
-      - name: Configurar Java JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      # 3. Instalar y configurar Flutter
+      # 2. Configurar el entorno de Flutter
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -33,29 +25,38 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # 4. Habilitar el soporte de Windows en Flutter
+      # 3. Asegurar soporte desktop activo
       - name: Habilitar Windows Config
         run: flutter config --enable-windows-desktop
 
-      # 5. Instalar de forma global el empaquetador del proyecto
+      # 4. Instalar la herramienta de distribución
       - name: Instalar Flutter Distributor
         run: flutter pub global activate flutter_distributor
 
-      # 6. Limpieza profunda e instalación de dependencias
-      - name: Instalar dependencias
+      # 5. LIMPIEZA AGRESIVA NATIVA DE CMAKE
+      # Esto elimina archivos de compilación de Windows previos que exijan Visual Studio 2019
+      - name: Limpieza profunda de CMake y Flutter
         run: |
-          flutter pub clean
-          flutter pub get
+          flutter clean
+          if (Test-Path windows\flutter\ephemeral) { Remove-Item -Recurse -Force windows\flutter\ephemeral }
+          if (Test-Path build) { Remove-Item -Recurse -Force build }
 
-      # 7. Generar tus nuevos iconos de Eclipse-HM
+      # 6. Descargar las dependencias del pubspec
+      - name: Instalar dependencias
+        run: flutter pub get
+
+      # 7. Inyectar tus iconos de Eclipse-HM
       - name: Generar Iconos de la App
         run: flutter pub run flutter_launcher_icons
 
-      # 8. COMPILACIÓN: Ejecuta el empaquetador usando las herramientas nativas de Windows
+      # 8. COMPILACIÓN FORZADA EN LA PLATAFORMA NUEVA
+      # Al pasarle la variable de entorno, obligamos a CMake a usar la versión de VS disponible sin buscar la 2019
       - name: Compilar ejecutable con Distributor
+        env:
+          CMAKE_GENERATOR: "Visual Studio 17 2022"
         run: flutter pub global run flutter_distributor package --platform=windows --targets=exe
 
-      # 9. Subir el instalador/ejecutable resultante (.exe)
+      # 9. Guardar tu .exe listo
       - name: Subir Ejecutable como Artefacto
         uses: actions/upload-artifact@v4
         with:
