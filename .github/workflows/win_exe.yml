@@ -29,38 +29,40 @@ jobs:
       - name: Habilitar Windows Config
         run: flutter config --enable-windows-desktop
 
-      # 4. Instalar una versión estable y probada del distribuidor
-      - name: Instalar Flutter Distributor
-        run: flutter pub global activate flutter_distributor 0.4.1
-
-      # 5. Purga absoluta de basura e indexaciones viejas de CMake
+      # 4. Limpieza profunda de CMake y Flutter residual
       - name: Limpieza profunda de CMake y Flutter
         run: |
           flutter clean
           if (Test-Path windows\flutter\ephemeral) { Remove-Item -Recurse -Force windows\flutter\ephemeral }
           if (Test-Path build) { Remove-Item -Recurse -Force build }
 
-      # 6. Descargar dependencias limpias de la app
+      # 5. Descargar dependencias limpias de la app (Incluye tu buscador reparado)
       - name: Instalar dependencias
         run: flutter pub get
 
-      # 7. INYECCIÓN DE RESPALDO: Fuerza la existencia del paquete de iconos en el servidor
-      - name: Asegurar instalación de Flutter Launcher Icons
-        run: flutter pub add --dev flutter_launcher_icons
-
-      # 8. Renderizar tus logos personalizados de Eclipse-HM
+      # 6. Instalar y renderizar tus logos personalizados de Eclipse-HM
       - name: Generar Iconos de la App
-        run: flutter pub run flutter_launcher_icons
+        run: |
+          flutter pub add --dev flutter_launcher_icons
+          flutter pub run flutter_launcher_icons
 
-      # 9. COMPILACIÓN: Ejecución directa usando el comando moderno de Dart Path
-      - name: Compilar ejecutable con Distributor
+      # 7. COMPILACIÓN NATIVA DIRECTA DE FLUTTER
+      # Inyectamos el generador Visual Studio 2022 para evitar el error anterior de CMake
+      - name: Compilar ejecutable oficial de Windows
         env:
           CMAKE_GENERATOR: "Visual Studio 17 2022"
-        run: dart pub global run flutter_distributor:flutter_distributor package --platform=windows --targets=exe
+        run: flutter build windows --release --dart-define FLUTTER_BUILD_NAME=1.12.2 --dart-define FLUTTER_BUILD_NUMBER=27
 
-      # 10. Recoger el instalador empaquetado final
-      - name: Subir Ejecutable como Artefacto
+      # 8. EMPAQUETADO AUTOMÁTICO
+      # Agrupamos el archivo .exe junto con sus librerías dinámicas (.dll) necesarias en un archivo ZIP listo para usar
+      - name: Crear paquete ZIP de la aplicación
+        run: |
+          New-Item -ItemType Directory -Force -Path dist
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath dist\Eclipse-HM-Windows-x64.zip
+
+      # 9. Guardar tu .zip final en los artefactos de GitHub
+      - name: Subir Paquete como Artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: Eclipse-HM-Windows-EXE
+          name: Eclipse-HM-Windows-Package
           path: dist/
